@@ -772,7 +772,8 @@ module ActiveResource
         check_prefix_options(prefix_options)
 
         prefix_options, query_options = split_options(prefix_options) if query_options.nil?
-        "#{prefix(prefix_options)}#{collection_name}/#{URI.encode_www_form_component(id.to_s)}#{format_extension}#{query_string(query_options)}"
+        path = "#{prefix(prefix_options)}#{collection_name}/#{URI.encode_www_form_component(id.to_s)}#{format_extension}#{query_string(query_options)}"
+        path.gsub('%3Asearch_id', '')
       end
 
       # Gets the element url for the given ID in +id+. If the +query_options+ parameter is omitted, Rails
@@ -1066,10 +1067,12 @@ module ActiveResource
               instantiate_collection(get(from, options[:params]), options[:params])
             when String
               path = "#{from}#{query_string(options[:params])}"
+              path = path.gsub('%3Asearch_id', '')
               instantiate_collection(format.decode(connection.get(path, headers).body) || [], options[:params])
             else
               prefix_options, query_options = split_options(options[:params])
               path = collection_path(prefix_options, query_options)
+              path = path.gsub('%3Asearch_id', '')
               instantiate_collection((format.decode(connection.get(path, headers).body) || []), query_options, prefix_options)
             end
           rescue ActiveResource::ResourceNotFound
@@ -1086,6 +1089,7 @@ module ActiveResource
             instantiate_record(get(from, options[:params]))
           when String
             path = "#{from}#{query_string(options[:params])}"
+            path = path.gsub('%3Asearch_id', '')
             instantiate_record(format.decode(connection.get(path, headers).body))
           end
         end
@@ -1094,6 +1098,7 @@ module ActiveResource
         def find_single(scope, options)
           prefix_options, query_options = split_options(options[:params])
           path = element_path(scope, prefix_options, query_options)
+          path = path.gsub('%3Asearch_id', '')
           instantiate_record(format.decode(connection.get(path, headers).body), prefix_options)
         end
 
